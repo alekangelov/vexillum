@@ -1,5 +1,5 @@
-# Vexillum - Actually open source feature flagging
-
+# Vexillum
+A fast, open source feature flagging solution. No bloat, no paywalls.
 
 ## Overview
 Vexillum is an open source feature flagging solution. It's really open source, no gated features. It allows you to manage feature flags and experiments in your applications. Provides automation capabilities to help you manage your feature flags more effectively.
@@ -15,4 +15,11 @@ Vexillum is an open source feature flagging solution. It's really open source, n
 - Fast and lightweight: Designed for performance and minimal resource usage.
 
 ## How to use
-You can self host it right now by following the instructions in the [installation guide](docs/installation.md).
+You can self host it right now by following the instructions in the [installation guide](docs/installation.md). We might set up a hosted version in the future.
+
+## Contributing
+We welcome contributions! Please see our [contributing guide](CONTRIBUTING.md) for more information.
+
+## License
+
+Vexillum is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.
