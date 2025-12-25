@@ -1,7 +1,7 @@
 ## Tech stack
 - Backend: Rust with Axum
 - Database: PostgreSQL
-- Frontend: Solidjs with Tailwind CSS
+- Frontend: Solid with Tailwind CSS
 - Infrastructure: Docker, Docker Compose
 - CI/CD: GitHub Actions
 - Testing: Jest, Playwright
