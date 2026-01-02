@@ -1,0 +1,3 @@
+[workspace]
+members = ["apps/backend", "crates/pgmap", "crates/pgmap-derive"]
+resolver = "2"

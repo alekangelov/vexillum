@@ -1,0 +1,11 @@
+[package]
+name = "pgmap"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio-postgres = "0.7.15"
+tokio = { version = "1.48.0", features = ["full"] }
+pgmap-derive = { path = "../pgmap-derive" }
+
+[dev-dependencies]
