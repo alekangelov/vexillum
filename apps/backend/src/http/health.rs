@@ -1,5 +1,6 @@
 use crate::state::AppState;
 use axum::{Json, Router, extract::State, routing::get};
+use deadpool_redis::redis;
 use pgmap::FromRow;
 use serde_json::{Value, json};
 
@@ -40,6 +41,11 @@ async fn readyz(State(s): State<AppState>) -> Json<Value> {
             &[],
         )
         .await;
+    let mut redis_conn = s.redis_pool.get().await.unwrap();
+    let redis_ping: String = redis::cmd("PING")
+        .query_async(&mut redis_conn)
+        .await
+        .unwrap();
     if ping_row.is_err() {
         return Json(json!({
             "status": "error",
@@ -50,6 +56,7 @@ async fn readyz(State(s): State<AppState>) -> Json<Value> {
     Json(json!({
         "status": "ok",
         "now": chrono::Utc::now().timestamp(),
-        "database": HealthRes::from_row(&ping_row.unwrap()).unwrap()
+        "database": HealthRes::from_row(&ping_row.unwrap()).unwrap(),
+        "redis": redis_ping
     }))
 }
