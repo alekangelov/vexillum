@@ -1,6 +1,6 @@
-use crate::pkg::auth::AuthUser;
 use crate::pkg::error::AppError;
 use crate::pkg::state::AppState;
+use crate::{models::users::MagicLink, pkg::auth::AuthUser};
 use argon2::{
     PasswordVerifier, password_hash::PasswordHash, password_hash::PasswordHasher,
     password_hash::SaltString,
@@ -222,38 +222,33 @@ async fn verify_magic_link(
     // Find and validate magic link token
     let magic_link_row = client
         .query_opt(
-            "SELECT user_id, expires_at FROM magic_links WHERE token = $1",
-            &[&uuid::Uuid::parse_str(&payload.token)
-                .map_err(|_| AppError::BadRequest("Invalid token format".to_string()))?],
+            "SELECT user_id, expires_at FROM magic_links WHERE token = $1 ",
+            &[
+                &uuid::Uuid::parse_str(&payload.token)
+                    .map_err(|_| AppError::BadRequest("Invalid token format".to_string()))?,
+                &chrono::Utc::now(),
+            ],
         )
         .await?
         .ok_or(AppError::Unauthorized(
             "Invalid or expired magic link".to_string(),
         ))?;
 
-    let user_id: Option<Uuid> = magic_link_row
-        .try_get(0)
-        .map_err(|_| AppError::InternalError("Failed to parse user_id".to_string()))?;
-    let expires_at: chrono::DateTime<chrono::Utc> = magic_link_row
-        .try_get(1)
-        .map_err(|_| AppError::InternalError("Failed to parse expires_at".to_string()))?;
+    let magic_link = MagicLink::from_row(&magic_link_row)
+        .map_err(|_| AppError::InternalError("Failed to parse magic link data".to_string()))?;
 
     // Check if magic link has expired
-    if expires_at < chrono::Utc::now() {
+    if magic_link.expires_at < chrono::Utc::now() {
         return Err(AppError::Unauthorized("Magic link has expired".to_string()));
     }
 
-    let user_id = user_id.ok_or(AppError::Unauthorized(
-        "Magic link not associated with user".to_string(),
-    ))?;
+    let user_id = magic_link
+        .user_id
+        .ok_or(AppError::Unauthorized("User not found".to_string()))?;
 
     // Delete the used magic link
     client
-        .execute(
-            "DELETE FROM magic_links WHERE token = $1",
-            &[&uuid::Uuid::parse_str(&payload.token)
-                .map_err(|_| AppError::BadRequest("Invalid token format".to_string()))?],
-        )
+        .execute("DELETE FROM magic_links WHERE id = $1", &[&magic_link.id])
         .await?;
 
     // Generate tokens
