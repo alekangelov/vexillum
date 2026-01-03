@@ -1,4 +1,5 @@
 use super::config::Config;
+use super::jwt::JwtService;
 use crate::models::enums::UserRole;
 use argon2::password_hash::{PasswordHasher, SaltString};
 use deadpool_postgres::{self, ManagerConfig, RecyclingMethod};
@@ -12,6 +13,7 @@ pub struct BaseState {
     pub redis_pool: deadpool_redis::Pool,
     pub config: Arc<Config>,
     pub argon2: argon2::Argon2<'static>,
+    pub jwt: Arc<JwtService>,
 }
 
 pub type AppState = Arc<BaseState>;
@@ -47,11 +49,21 @@ impl BaseState {
 
         let redis_pool = redis_pool.unwrap();
 
+        // Initialize JWT service with auto-generated or loaded RSA keys
+        let (private_key, public_key) = super::keys::KeyManager::load_or_generate_keys()?;
+        let jwt = JwtService::new(
+            &private_key,
+            &public_key,
+            config.access_token_expiry,
+            config.refresh_token_expiry,
+        )?;
+
         let base_state = BaseState {
             db_pool: pg_pool,
             config: Arc::new(config),
             redis_pool,
             argon2: argon2::Argon2::default(),
+            jwt: Arc::new(jwt),
         };
 
         base_state.init_admin_user().await?;

@@ -27,7 +27,7 @@
 #[macro_export]
 macro_rules! postgres_enum {
     ($enum_name:ident, $pg_name:expr, $($variant:ident => $str:expr),* $(,)?) => {
-        #[derive(Debug, Clone, Copy)]
+        #[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
         pub enum $enum_name {
             $($variant),*
         }
