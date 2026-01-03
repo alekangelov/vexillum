@@ -4,6 +4,7 @@ mod state;
 
 use config::Config;
 use state::BaseState;
+pub mod models;
 
 #[tokio::main]
 async fn main() {

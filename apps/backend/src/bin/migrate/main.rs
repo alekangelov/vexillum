@@ -121,19 +121,25 @@ impl Migrator {
 
         for (name, path) in files {
             if !executed.contains(&name) {
-                let sql = fs::read_to_string(&path)?;
+                let content = fs::read_to_string(&path)?;
 
-                println!("Running migration: {}", name);
-                self.db_client.batch_execute(&sql).await?;
+                // Extract only the UP section
+                if let Some(up_section) = content.split("-- UP").nth(1) {
+                    let up_sql = up_section.split("-- DOWN").next().unwrap_or(up_section);
+                    println!("Running migration: {}", name);
+                    self.db_client.batch_execute(up_sql).await?;
 
-                self.db_client
-                    .execute(
-                        "INSERT INTO _schema_migrations (name) VALUES ($1)",
-                        &[&name],
-                    )
-                    .await?;
+                    self.db_client
+                        .execute(
+                            "INSERT INTO _schema_migrations (name) VALUES ($1)",
+                            &[&name],
+                        )
+                        .await?;
 
-                ran_any = true;
+                    ran_any = true;
+                } else {
+                    return Err(format!("Migration {} does not contain an UP section", name).into());
+                }
             }
         }
 

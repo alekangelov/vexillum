@@ -44,6 +44,14 @@ pub struct Config {
     /// Redis port
     #[arg(long, env = "REDIS_PORT", default_value = "6379")]
     pub redis_port: u16,
+
+    /// Admin user email
+    #[arg(long, env = "ADMIN_EMAIL", default_value = "")]
+    pub admin_email: String,
+
+    /// Admin user password
+    #[arg(long, env = "ADMIN_PASSWORD", default_value = "")]
+    pub admin_password: String,
 }
 
 impl Config {

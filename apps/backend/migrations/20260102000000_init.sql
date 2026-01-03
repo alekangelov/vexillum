@@ -5,11 +5,11 @@
 -- UP
 create extension if not exists "uuid-ossp";
 
-create enum user_role as ('admin', 'user', 'viewer');
-create enum feature_flag_type as ('boolean', 'multivariate', 'json');
-create enum value_type as ('string', 'number', 'boolean', 'json');
-create enum match_operator as ('eq', 'neq', 'in', 'nin', 'gt', 'lt', 'gte', 'lte', 'contains', 'ncontains');
-create enum audience_scope as ('global', 'inline');
+create type user_role as enum ('admin', 'user', 'viewer');
+create type feature_flag_type as enum ('boolean', 'multivariate', 'json');
+create type value_type as enum ('string', 'number', 'boolean', 'json');
+create type match_operator as enum ('eq', 'neq', 'in', 'nin', 'gt', 'lt', 'gte', 'lte', 'contains', 'ncontains');
+create type audience_scope as enum ('global', 'inline');
 
 create table users (
     id uuid default uuid_generate_v4() primary key,
@@ -111,7 +111,6 @@ create index idx_feature_flag_overrides_feature_flag_id on feature_flag_override
 -- DOWN
 drop table if exists feature_flag_overrides;
 drop table if exists audiences;
-drop table if exists feature_flag_variants;
 drop table if exists feature_flags;
 drop table if exists api_keys;
 drop table if exists environments;
@@ -119,9 +118,9 @@ drop table if exists project_owners;
 drop table if exists projects;
 drop table if exists magic_links;
 drop table if exists users;
+drop type if exists audience_scope;
+drop type if exists match_operator;
+drop type if exists value_type;
 drop type if exists feature_flag_type;
 drop type if exists user_role;
-drop type if exists value_type;
-drop type if exists match_operator;
-drop type if exists audience_scope;
 drop extension if exists "uuid-ossp";
