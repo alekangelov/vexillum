@@ -1,42 +1,4 @@
-use std::error::Error;
-use tokio_postgres::types::{IsNull, ToSql, Type};
-
-macro_rules! postgres_enum {
-    ($enum_name:ident, $pg_name:expr, $($variant:ident => $str:expr),* $(,)?) => {
-        #[derive(Debug, Clone, Copy)]
-        pub enum $enum_name {
-            $($variant),*
-        }
-
-        impl ToSql for $enum_name {
-            fn to_sql(
-                &self,
-                ty: &Type,
-                out: &mut tokio_postgres::types::private::BytesMut,
-            ) -> Result<IsNull, Box<dyn Error + Sync + Send>> {
-                let s = match self {
-                    $($enum_name::$variant => $str),*
-                };
-                <&str as ToSql>::to_sql(&s, ty, out)
-            }
-
-            fn accepts(ty: &Type) -> bool {
-                ty.name() == $pg_name
-            }
-
-            fn to_sql_checked(
-                &self,
-                ty: &Type,
-                out: &mut tokio_postgres::types::private::BytesMut,
-            ) -> Result<IsNull, Box<dyn Error + Sync + Send>> {
-                if !Self::accepts(ty) {
-                    return Err("Wrong type".into());
-                }
-                self.to_sql(ty, out)
-            }
-        }
-    };
-}
+use pgmap::postgres_enum;
 
 postgres_enum!(UserRole, "user_role",
     Admin => "admin",

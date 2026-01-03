@@ -61,9 +61,9 @@ impl Config {
         let _ = dotenv();
 
         // Parse arguments with environment variable fallback
-        let config = Config::parse();
+        
 
-        config
+        Config::parse()
     }
 
     /// Build the PostgreSQL connection string

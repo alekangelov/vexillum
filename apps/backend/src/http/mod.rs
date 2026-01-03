@@ -1,8 +1,16 @@
-pub mod health;
+mod auth;
+mod health;
 
-use crate::state::AppState;
+use crate::pkg::state::AppState;
 use axum::Router;
 
+fn api_router() -> Router<AppState> {
+    Router::new().merge(auth::router())
+}
+
 pub fn router(state: AppState) -> Router {
-    Router::new().merge(health::router()).with_state(state)
+    Router::new()
+        .merge(health::router())
+        .nest("/api", api_router())
+        .with_state(state)
 }

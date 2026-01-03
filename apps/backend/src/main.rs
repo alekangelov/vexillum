@@ -1,10 +1,9 @@
-mod config;
-mod http;
-mod state;
+use pkg::config::Config;
+use pkg::state::BaseState;
 
-use config::Config;
-use state::BaseState;
-pub mod models;
+mod http;
+mod models;
+mod pkg;
 
 #[tokio::main]
 async fn main() {

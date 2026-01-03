@@ -1,11 +1,10 @@
-use crate::config::Config;
+use super::config::Config;
 use crate::models::enums::UserRole;
 use argon2::password_hash::{PasswordHasher, SaltString};
 use deadpool_postgres::{self, ManagerConfig, RecyclingMethod};
 use rand::TryRngCore;
 use std::sync::Arc;
 use tokio_postgres::NoTls;
-use tokio_postgres::types::{ToSql, Type};
 
 #[derive(Clone)]
 pub struct BaseState {
@@ -51,7 +50,7 @@ impl BaseState {
         let base_state = BaseState {
             db_pool: pg_pool,
             config: Arc::new(config),
-            redis_pool: redis_pool,
+            redis_pool,
             argon2: argon2::Argon2::default(),
         };
 
