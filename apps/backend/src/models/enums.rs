@@ -1,8 +1,13 @@
 use std::error::Error;
-use tokio_postgres::types::{FromSql, IsNull, ToSql, Type};
+use tokio_postgres::types::{IsNull, ToSql, Type};
 
-macro_rules! impl_enum {
-    ($enum_name:ident, $pg_name:expr, $($variant:ident => $str:expr),*) => {
+macro_rules! postgres_enum {
+    ($enum_name:ident, $pg_name:expr, $($variant:ident => $str:expr),* $(,)?) => {
+        #[derive(Debug, Clone, Copy)]
+        pub enum $enum_name {
+            $($variant),*
+        }
+
         impl ToSql for $enum_name {
             fn to_sql(
                 &self,
@@ -33,62 +38,26 @@ macro_rules! impl_enum {
     };
 }
 
-#[derive(Debug, Clone, Copy)]
-pub enum UserRole {
-    Admin,
-    User,
-    Viewer,
-}
-
-impl_enum!(UserRole, "user_role",
+postgres_enum!(UserRole, "user_role",
     Admin => "admin",
     User => "user",
     Viewer => "viewer"
 );
 
-#[derive(Debug, Clone, Copy)]
-pub enum FeatureFlagType {
-    Boolean,
-    Multivariate,
-    Json,
-}
-
-impl_enum!(FeatureFlagType, "feature_flag_type",
+postgres_enum!(FeatureFlagType, "feature_flag_type",
     Boolean => "boolean",
     Multivariate => "multivariate",
     Json => "json"
 );
 
-#[derive(Debug, Clone, Copy)]
-pub enum ValueType {
-    String,
-    Number,
-    Boolean,
-    Json,
-}
-
-impl_enum!(ValueType, "value_type",
+postgres_enum!(ValueType, "value_type",
     String => "string",
     Number => "number",
     Boolean => "boolean",
     Json => "json"
 );
 
-#[derive(Debug, Clone, Copy)]
-pub enum MatchOperator {
-    Eq,
-    Neq,
-    In,
-    Nin,
-    Gt,
-    Lt,
-    Gte,
-    Lte,
-    Contains,
-    Ncontains,
-}
-
-impl_enum!(MatchOperator, "match_operator",
+postgres_enum!(MatchOperator, "match_operator",
     Eq => "eq",
     Neq => "neq",
     In => "in",
@@ -101,13 +70,7 @@ impl_enum!(MatchOperator, "match_operator",
     Ncontains => "ncontains"
 );
 
-#[derive(Debug, Clone, Copy)]
-pub enum AudienceScope {
-    Global,
-    Inline,
-}
-
-impl_enum!(AudienceScope, "audience_scope",
+postgres_enum!(AudienceScope, "audience_scope",
     Global => "global",
     Inline => "inline"
 );
