@@ -70,3 +70,6 @@ migrate.reset:
 
 migrate.status:
 	cargo run --bin migrate -- status
+
+reflect:
+	cargo run --bin reflector

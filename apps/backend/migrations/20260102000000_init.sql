@@ -11,8 +11,22 @@ create type value_type as enum ('string', 'number', 'boolean', 'json');
 create type match_operator as enum ('eq', 'neq', 'in', 'nin', 'gt', 'lt', 'gte', 'lte', 'contains', 'ncontains');
 create type audience_scope as enum ('global', 'inline');
 
+create table orgs (
+    id uuid default uuid_generate_v4() primary key,
+    slug varchar(100) not null unique,
+    name varchar(255) not null unique,
+    region varchar(100) not null,
+    created_at timestamptz default current_timestamp,
+    updated_at timestamptz default current_timestamp
+);
+
+create index idx_orgs_slug on orgs(slug);
+
+insert into orgs (name, slug, region) values ('Default Org', 'default-org', 'us-east-1');
+
 create table users (
     id uuid default uuid_generate_v4() primary key,
+    org_id uuid references orgs(id) on delete cascade,
     email varchar(255) not null unique,
     password_hash varchar(255) not null,
     role user_role not null default 'viewer',
@@ -34,6 +48,7 @@ create index idx_magic_links_token on magic_links(token);
 
 create table projects (
     id uuid default uuid_generate_v4() primary key,
+    org_id uuid references orgs(id) on delete cascade,
     name varchar(100) not null,
     description text,
     created_at timestamptz default current_timestamp,
@@ -70,6 +85,7 @@ create index idx_api_keys_key_hash on api_keys(key_hash);
 
 create table feature_flags (
     id uuid default uuid_generate_v4() primary key,
+    org_id uuid references orgs(id) on delete cascade,
     key varchar(100) not null,
     is_enabled boolean default false,
     type feature_flag_type not null default 'boolean',
@@ -84,6 +100,7 @@ create index idx_feature_flags_key on feature_flags(key);
 
 create table audiences (
     id uuid default uuid_generate_v4() primary key,
+    org_id uuid references orgs(id) on delete cascade,
     name varchar(255) not null,
     attribute varchar(100) not null,
     operator match_operator not null,
@@ -118,9 +135,11 @@ drop table if exists project_owners;
 drop table if exists projects;
 drop table if exists magic_links;
 drop table if exists users;
+drop table if exists orgs;
 drop type if exists audience_scope;
 drop type if exists match_operator;
 drop type if exists value_type;
 drop type if exists feature_flag_type;
 drop type if exists user_role;
+
 drop extension if exists "uuid-ossp";

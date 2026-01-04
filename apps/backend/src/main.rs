@@ -27,6 +27,7 @@ async fn main() {
         .expect("Failed to bind server address");
 
     println!("Server running on http://{}", server_addr);
+    println!("Swagger UI available at http://{}/swagger-ui", server_addr);
 
     axum::serve(listener, app).await.expect("Server error");
 }

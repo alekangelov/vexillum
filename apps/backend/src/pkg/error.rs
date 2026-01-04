@@ -7,6 +7,8 @@ use axum::{
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+use crate::pkg::response::DataResponse;
+
 #[derive(Debug, Error)]
 pub enum AppError {
     // 400 - Bad Request
@@ -61,11 +63,14 @@ impl IntoResponse for AppError {
             }
         };
 
-        let body = Json(ErrorResponse {
-            error: error_message,
-        });
+        let body = DataResponse::<()>::new()
+            .success(false)
+            .message("Oops, something went wrong")
+            .error_details(error_message)
+            .error_code(status.into())
+            .build();
 
-        (status, body).into_response()
+        (status, Json(body)).into_response()
     }
 }
 

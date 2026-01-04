@@ -3,6 +3,7 @@ use axum::{Json, Router, extract::State, routing::get};
 use deadpool_redis::redis;
 use pgmap::FromRow;
 use serde_json::{Value, json};
+use utoipa::ToSchema;
 
 pub fn router() -> Router<AppState> {
     Router::new()
@@ -10,6 +11,15 @@ pub fn router() -> Router<AppState> {
         .route("/readyz", get(readyz))
 }
 
+/// Health check endpoint
+#[utoipa::path(
+    get,
+    path = "/healthz",
+    responses(
+        (status = 200, description = "Server is healthy", body = Value),
+    ),
+    tag = "Health"
+)]
 #[axum_macros::debug_handler]
 async fn healthz() -> Json<Value> {
     Json(json!({
@@ -18,13 +28,13 @@ async fn healthz() -> Json<Value> {
     }))
 }
 
-#[derive(serde::Deserialize, serde::Serialize)]
-struct XReq {
+#[derive(serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
+pub struct XReq {
     some: String,
 }
 
-#[derive(pgmap::FromRow, serde::Deserialize, serde::Serialize)]
-struct HealthRes {
+#[derive(pgmap::FromRow, serde::Deserialize, serde::Serialize, ToSchema)]
+pub struct HealthRes {
     #[from_row(default)]
     ping: String,
     now: i64,
@@ -32,6 +42,16 @@ struct HealthRes {
     info: XReq,
 }
 
+/// Readiness check endpoint - checks database and redis connectivity
+#[utoipa::path(
+    get,
+    path = "/readyz",
+    responses(
+        (status = 200, description = "Server is ready", body = Value),
+        (status = 503, description = "Server is not ready", body = Value),
+    ),
+    tag = "Health"
+)]
 #[axum_macros::debug_handler]
 async fn readyz(State(s): State<AppState>) -> Json<Value> {
     let client = s.db_pool.get().await.unwrap();

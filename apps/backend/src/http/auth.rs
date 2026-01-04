@@ -1,6 +1,7 @@
 use crate::pkg::error::AppError;
+use crate::pkg::response::DataResponse;
 use crate::pkg::state::AppState;
-use crate::{models::users::MagicLink, pkg::auth::AuthUser};
+use crate::{models::db::MagicLinks, pkg::auth::AuthUser};
 use argon2::{
     PasswordVerifier, password_hash::PasswordHash, password_hash::PasswordHasher,
     password_hash::SaltString,
@@ -13,9 +14,10 @@ use axum_extra::extract::{
 use pgmap::FromRow;
 use rand::TryRngCore;
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 use uuid::Uuid;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, ToSchema)]
 pub struct LoginRequest {
     pub email: String,
     pub password: String,
@@ -23,34 +25,45 @@ pub struct LoginRequest {
     pub remember_me: bool,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, ToSchema)]
 pub struct RegisterRequest {
     pub email: String,
     pub password: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, ToSchema)]
 pub struct MagicLinkRequest {
     pub email: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, ToSchema)]
 pub struct MagicLinkVerifyRequest {
     pub token: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, ToSchema)]
 pub struct AuthResponse {
     pub access_token: String,
     pub refresh_token: Option<String>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, ToSchema)]
 pub struct PublicKeyResponse {
     pub public_key: String,
 }
 
 // Auth handlers
+/// User login with email and password
+#[utoipa::path(
+    post,
+    path = "/v1/auth/login",
+    request_body = LoginRequest,
+    responses(
+        (status = 200, description = "Login successful", body = DataResponse<AuthResponse>),
+        (status = 401, description = "Invalid credentials", body = DataResponse<serde_json::Value>),
+    ),
+    tag = "Authentication"
+)]
 #[axum_macros::debug_handler]
 async fn login(
     State(state): State<AppState>,
@@ -65,7 +78,7 @@ async fn login(
             "Invalid email or password".to_string(),
         ))?;
 
-    let user = crate::models::users::User::from_row(&row)
+    let user = crate::models::db::Users::from_row(&row)
         .map_err(|_| AppError::InternalError("Failed to parse user data".to_string()))?;
 
     // Verify password
@@ -105,6 +118,17 @@ async fn login(
     ))
 }
 
+/// User registration with email and password
+#[utoipa::path(
+    post,
+    path = "/v1/auth/register",
+    request_body = RegisterRequest,
+    responses(
+        (status = 200, description = "Registration successful", body = DataResponse<AuthResponse>),
+        (status = 409, description = "User already exists", body = DataResponse<serde_json::Value>),
+    ),
+    tag = "Authentication"
+)]
 #[axum_macros::debug_handler]
 async fn register(
     State(state): State<AppState>,
@@ -175,6 +199,16 @@ async fn register(
     ))
 }
 
+/// Request a magic link for passwordless authentication
+#[utoipa::path(
+    post,
+    path = "/v1/auth/magic-link/request",
+    request_body = MagicLinkRequest,
+    responses(
+        (status = 200, description = "Magic link sent", body = DataResponse<serde_json::Value>),
+    ),
+    tag = "Authentication"
+)]
 async fn request_magic_link(
     State(state): State<AppState>,
     Json(payload): Json<MagicLinkRequest>,
@@ -213,6 +247,17 @@ async fn request_magic_link(
     })))
 }
 
+/// Verify magic link token and authenticate user
+#[utoipa::path(
+    post,
+    path = "/v1/auth/magic-link/verify",
+    request_body = MagicLinkVerifyRequest,
+    responses(
+        (status = 200, description = "Magic link verified", body = DataResponse<AuthResponse>),
+        (status = 401, description = "Invalid or expired magic link", body = DataResponse<serde_json::Value>),
+    ),
+    tag = "Authentication"
+)]
 async fn verify_magic_link(
     State(state): State<AppState>,
     Json(payload): Json<MagicLinkVerifyRequest>,
@@ -234,7 +279,7 @@ async fn verify_magic_link(
             "Invalid or expired magic link".to_string(),
         ))?;
 
-    let magic_link = MagicLink::from_row(&magic_link_row)
+    let magic_link = MagicLinks::from_row(&magic_link_row)
         .map_err(|_| AppError::InternalError("Failed to parse magic link data".to_string()))?;
 
     // Check if magic link has expired
@@ -278,6 +323,16 @@ async fn verify_magic_link(
     ))
 }
 
+/// Refresh access token using refresh token cookie
+#[utoipa::path(
+    post,
+    path = "/v1/auth/refresh",
+    responses(
+        (status = 200, description = "Token refreshed", body = DataResponse<AuthResponse>),
+        (status = 401, description = "Refresh token not found or invalid", body = DataResponse<serde_json::Value>),
+    ),
+    tag = "Authentication"
+)]
 async fn refresh_token(
     State(state): State<AppState>,
     jar: axum_extra::extract::CookieJar,
@@ -309,6 +364,15 @@ async fn refresh_token(
     }),))
 }
 
+/// Logout user by clearing refresh token
+#[utoipa::path(
+    post,
+    path = "/v1/auth/logout",
+    responses(
+        (status = 200, description = "Logged out successfully", body = DataResponse<serde_json::Value>),
+    ),
+    tag = "Authentication"
+)]
 async fn logout() -> Result<impl IntoResponse, AppError> {
     // Create an empty refresh token cookie to clear it
     let cookie = Cookie::build(("refresh_token", ""))
@@ -326,10 +390,20 @@ async fn logout() -> Result<impl IntoResponse, AppError> {
     ))
 }
 
+/// Get current authenticated user information
+#[utoipa::path(
+    get,
+    path = "/v1/auth/me",
+    responses(
+        (status = 200, description = "Current user data", body = DataResponse<crate::models::db::Users>),
+        (status = 401, description = "Unauthorized", body = DataResponse<serde_json::Value>),
+    ),
+    tag = "Authentication"
+)]
 async fn get_current_user(
     State(state): State<AppState>,
     auth_user: AuthUser,
-) -> Result<Json<crate::models::users::User>, AppError> {
+) -> Result<Json<crate::models::db::Users>, AppError> {
     let client = state.db_pool.get().await?;
 
     let row = client
@@ -337,12 +411,21 @@ async fn get_current_user(
         .await?
         .ok_or(AppError::NotFound("User not found".to_string()))?;
 
-    let user = crate::models::users::User::from_row(&row)
+    let user = crate::models::db::Users::from_row(&row)
         .map_err(|_| AppError::InternalError("Failed to parse user data".to_string()))?;
 
     Ok(Json(user))
 }
 
+/// Get public JWT key for token verification
+#[utoipa::path(
+    get,
+    path = "/v1/auth/keys",
+    responses(
+        (status = 200, description = "Public key", body = DataResponse<PublicKeyResponse>),
+    ),
+    tag = "Authentication"
+)]
 async fn get_keys(State(state): State<AppState>) -> Result<Json<PublicKeyResponse>, AppError> {
     let public_key_bytes = state.jwt.public_key();
     let public_key_str = String::from_utf8(public_key_bytes.to_vec())
