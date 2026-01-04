@@ -5,6 +5,25 @@ use pgmap::FromRow;
 use serde_json::{Value, json};
 use utoipa::ToSchema;
 
+#[derive(utoipa::OpenApi)]
+#[openapi(
+    paths(
+        healthz,
+        readyz,
+    ),
+    components(
+        schemas(
+            HealthRes,
+            XReq,
+        ),
+    ),
+    tags(
+        (name = "Health", description = "Server health checks"),
+    ),
+)]
+#[allow(dead_code)]
+pub struct HealthApi;
+
 pub fn router() -> Router<AppState> {
     Router::new()
         .route("/healthz", get(healthz))

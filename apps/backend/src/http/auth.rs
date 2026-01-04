@@ -17,6 +17,36 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
+#[derive(utoipa::OpenApi)]
+#[openapi(
+    paths(
+        login,
+        register,
+        request_magic_link,
+        verify_magic_link,
+        refresh_token,
+        logout,
+        get_current_user,
+        get_keys,
+    ),
+    components(
+        schemas(
+            LoginRequest,
+            RegisterRequest,
+            MagicLinkRequest,
+            MagicLinkVerifyRequest,
+            AuthResponse,
+            PublicKeyResponse,
+            crate::models::db::Users,
+        ),
+    ),
+    tags(
+        (name = "Authentication", description = "User authentication endpoints"),
+    ),
+)]
+#[allow(dead_code)]
+pub struct AuthApi;
+
 #[derive(Serialize, Deserialize, ToSchema)]
 pub struct LoginRequest {
     pub email: String,
