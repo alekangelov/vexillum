@@ -1,0 +1,15 @@
+{
+  "name": "@vexillum/eslint-config",
+  "version": "0.0.0",
+  "exports": {
+    "./*": "./src/*"
+  },
+  "devDependencies": {
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.26",
+    "typescript-eslint": "^8.51.0",
+    "eslint": "^9.39.2",
+    "globals": "^16.5.0",
+    "@eslint/js": "^9.39.2"
+  }
+}
