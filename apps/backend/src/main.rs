@@ -9,7 +9,6 @@ mod pkg;
 async fn main() {
     // Load configuration
     let config = Config::load();
-    let server_addr = config.server_addr();
     env_logger::init();
 
     config.print_summary();
@@ -20,14 +19,19 @@ async fn main() {
         .expect("Failed to initialize app state");
 
     // Build the router
-    let app = http::router(state);
+    let app = http::router(state.clone());
 
-    let listener = tokio::net::TcpListener::bind(server_addr.clone())
+    let listener = tokio::net::TcpListener::bind(state.config.server_addr())
         .await
         .expect("Failed to bind server address");
 
-    println!("Server running on http://{}", server_addr);
-    println!("Swagger UI available at http://{}/swagger-ui", server_addr);
+    println!("Server running on http://{}", state.config.server_addr());
+    println!(
+        "Swagger UI available at http://{}/swagger-ui",
+        state.config.server_addr()
+    );
+
+    println!("Frontend available at {}", state.config.frontend_url);
 
     axum::serve(listener, app).await.expect("Server error");
 }

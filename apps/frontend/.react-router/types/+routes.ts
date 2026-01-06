@@ -17,9 +17,6 @@ type Pages = {
   "/dashboard": {
     params: {};
   };
-  "/not-found": {
-    params: {};
-  };
   "/*": {
     params: {
       "*": string;
@@ -30,15 +27,11 @@ type Pages = {
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/" | "/dashboard" | "/not-found" | "/*";
+    page: "/" | "/dashboard" | "/*";
   };
   "pages/dashboard.tsx": {
     id: "pages/dashboard";
     page: "/dashboard";
-  };
-  "pages/not-found.tsx": {
-    id: "pages/not-found";
-    page: "/not-found";
   };
   "pages/_index.tsx": {
     id: "pages/_index";
@@ -53,7 +46,6 @@ type RouteFiles = {
 type RouteModules = {
   "root": typeof import("./src/root.tsx");
   "pages/dashboard": typeof import("./src/pages/dashboard.tsx");
-  "pages/not-found": typeof import("./src/pages/not-found.tsx");
   "pages/_index": typeof import("./src/pages/_index.tsx");
   "pages/$": typeof import("./src/pages/$.tsx");
 };

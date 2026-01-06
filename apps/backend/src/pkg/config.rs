@@ -60,6 +60,10 @@ pub struct Config {
     /// Refresh token expiry in seconds
     #[arg(env = "REFRESH_TOKEN_EXPIRY", default_value = "604800")]
     pub refresh_token_expiry: i64,
+
+    /// Frontend URL
+    #[arg(env = "FRONTEND_URL", default_value = "http://localhost:5173")]
+    pub frontend_url: String,
 }
 
 impl Config {

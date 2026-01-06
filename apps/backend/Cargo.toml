@@ -37,3 +37,5 @@ jsonwebtoken = { version = "10.2.0", features = ["rust_crypto"] }
 utoipa = { version = "5.4.0", features = ["axum_extras", "chrono", "uuid"] }
 utoipa-swagger-ui = { version = "9.0.2", features = ["axum"] }
 utoipa-axum = "0.2.0"
+tower-http = { version = "0.6.2", features = ["cors", "trace"] }
+tower = "0.5.1"

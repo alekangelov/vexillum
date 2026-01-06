@@ -3,8 +3,10 @@ mod health;
 
 use crate::pkg::state::AppState;
 use axum::Router;
+use tower_http::cors::{CorsLayer, AllowOrigin};
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
+use std::str::FromStr;
 
 #[derive(OpenApi)]
 #[openapi(info(
@@ -19,9 +21,13 @@ fn api_router() -> Router<AppState> {
 }
 
 pub fn router(state: AppState) -> Router {
+    // Configure CORS
+    let cors = CorsLayer::permissive();
+
     let router = Router::new()
         .merge(health::router())
         .nest("/api", api_router())
+        .layer(cors)
         .with_state(state);
 
     let mut openapi = ApiDoc::openapi();

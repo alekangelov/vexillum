@@ -1,2 +1,4 @@
 @import "tailwindcss";
 @import "../node_modules/@vexillum/ui/src/index.css";
+
+@source "../node_modules/@vexillum/ui/src";
