@@ -23,6 +23,8 @@ async function generateAPIClient(): Promise<void> {
       `-g typescript-axios`,
       `-o ${OUTPUT_DIR}`,
       "--skip-validate-spec",
+      "--global-property=apiDocs=false",
+      "--global-property=modelDocs=false",
       "--additional-properties=npmVersion=1.0.0,npmName=@vexillum/reqx,supportsES6=true,enumPropertyNaming=original",
     ].join(" ");
 
