@@ -17,6 +17,15 @@ type Pages = {
   "/dashboard": {
     params: {};
   };
+  "/auth": {
+    params: {};
+  };
+  "/auth/login": {
+    params: {};
+  };
+  "/auth/magic": {
+    params: {};
+  };
   "/*": {
     params: {
       "*": string;
@@ -27,7 +36,7 @@ type Pages = {
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/" | "/dashboard" | "/*";
+    page: "/" | "/dashboard" | "/auth" | "/auth/login" | "/auth/magic" | "/*";
   };
   "pages/dashboard.tsx": {
     id: "pages/dashboard";
@@ -36,6 +45,22 @@ type RouteFiles = {
   "pages/_index.tsx": {
     id: "pages/_index";
     page: "/";
+  };
+  "pages/auth/route.tsx": {
+    id: "pages/auth";
+    page: "/auth" | "/auth/login" | "/auth/magic";
+  };
+  "pages/auth._index/route.tsx": {
+    id: "pages/auth._index";
+    page: "/auth";
+  };
+  "pages/auth.login/route.tsx": {
+    id: "pages/auth.login";
+    page: "/auth/login";
+  };
+  "pages/auth.magic/route.tsx": {
+    id: "pages/auth.magic";
+    page: "/auth/magic";
   };
   "pages/$.tsx": {
     id: "pages/$";
@@ -47,5 +72,9 @@ type RouteModules = {
   "root": typeof import("./src/root.tsx");
   "pages/dashboard": typeof import("./src/pages/dashboard.tsx");
   "pages/_index": typeof import("./src/pages/_index.tsx");
+  "pages/auth": typeof import("./src/pages/auth/route.tsx");
+  "pages/auth._index": typeof import("./src/pages/auth._index/route.tsx");
+  "pages/auth.login": typeof import("./src/pages/auth.login/route.tsx");
+  "pages/auth.magic": typeof import("./src/pages/auth.magic/route.tsx");
   "pages/$": typeof import("./src/pages/$.tsx");
 };

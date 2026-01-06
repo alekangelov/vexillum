@@ -23,7 +23,8 @@
     "zustand": "^5.0.9",
     "@vexillum/reqx": "workspace:*",
     "axios": "^1.13.2",
-    "@tanstack/react-query": "^5.90.16"
+    "@tanstack/react-query": "^5.90.16",
+    "lucide-react": "^0.562.0"
   },
   "devDependencies": {
     "@react-router/dev": "^7.11.0",
