@@ -10,15 +10,19 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-router/fs-routes": "^7.11.0",
+    "@react-router/node": "^7.11.0",
     "@tailwindcss/vite": "^4.1.18",
     "@vexillum/ui": "workspace:*",
+    "isbot": "^5",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-router-dom": "^7.1.1",
+    "react-router": "^7.11.0",
     "tailwindcss": "^4.1.18",
     "zustand": "^5.0.9"
   },
   "devDependencies": {
+    "@react-router/dev": "^7.11.0",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
@@ -26,6 +30,7 @@
     "@vitejs/plugin-react": "^5.1.1",
     "babel-plugin-react-compiler": "^1.0.0",
     "typescript": "~5.9.3",
-    "vite": "npm:rolldown-vite@7.2.5"
+    "vite": "npm:rolldown-vite@7.2.5",
+    "vite-tsconfig-paths": "^6.0.3"
   }
 }

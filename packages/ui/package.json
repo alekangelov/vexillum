@@ -12,7 +12,8 @@
   "exports": {
     "./components/*": "./src/components/ui/*",
     "./lib/*": "./src/lib/*",
-    "./index.css": "./src/index.css"
+    "./index.css": "./src/index.css",
+    "./font": "./src/font.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.0.0",
