@@ -11,6 +11,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "./index.css";
 import "@vexillum/ui/font";
 import { ThemeProvider } from "@vexillum/ui/components/theme.js";
+import { AuthProvider } from "./state/auth";
 
 // Create a client for the app
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <AuthProvider />
       <ThemeProvider>
         <Outlet />
       </ThemeProvider>

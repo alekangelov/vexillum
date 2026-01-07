@@ -1,11 +1,34 @@
+import { useMutation } from "@tanstack/react-query";
 import { Button } from "@vexillum/ui/components/button.tsx";
 import { Input } from "@vexillum/ui/components/input.tsx";
 import { Label } from "@vexillum/ui/components/label.tsx";
 import { cn } from "@vexillum/ui/lib/utils.js";
+import { API } from "../../api";
+import { useAuth } from "../../state/auth";
 
 export default function LoginRoute() {
+  const { isPending, mutateAsync: login } = useMutation({
+    mutationKey: ["login"],
+    mutationFn: async (credentials: { email: string; password: string }) => {
+      return (await API.auth.login(credentials)).data.data;
+    },
+  });
+  const state = useAuth();
   return (
-    <form className={cn("flex flex-col gap-6")}>
+    <form
+      className={cn("flex flex-col gap-6")}
+      onSubmit={async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        const { access_token: aT } =
+          (await login({
+            email: formData.get("email") as string,
+            password: formData.get("password") as string,
+          })) ?? {};
+        if (!aT) return;
+        state.login(aT);
+      }}
+    >
       <title>Login</title>
       <div className="flex flex-col items-center gap-2 text-center">
         <h1 className="text-2xl font-bold">Login to your account</h1>
@@ -16,7 +39,13 @@ export default function LoginRoute() {
       <div className="grid gap-6">
         <div className="grid gap-2">
           <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" placeholder="m@example.com" required />
+          <Input
+            id="email"
+            type="email"
+            name="email"
+            placeholder="me@example.com"
+            required
+          />
         </div>
         <div className="grid gap-2">
           <div className="flex items-center">
@@ -28,18 +57,12 @@ export default function LoginRoute() {
               Login via magic link?
             </a>
           </div>
-          <Input id="password" type="password" required />
+          <Input id="password" name="password" type="password" required />
         </div>
-        <Button type="submit" className="w-full">
+        <Button disabled={isPending} type="submit" className="w-full">
           Login
         </Button>
       </div>
-      {/* <div className="text-center text-sm">
-        Don&apos;t have an account?{" "}
-        <a href="#" className="underline underline-offset-4">
-          Sign up
-        </a>
-      </div> */}
     </form>
   );
 }

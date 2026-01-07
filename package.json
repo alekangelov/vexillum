@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "genapi": "tsx ./scripts/genapi.ts"
+    "genapi": "tsx ./scripts/genapi.ts && pnpm --filter @vexillum/reqx build"
   },
   "keywords": [],
   "author": "",

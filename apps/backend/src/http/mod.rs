@@ -3,8 +3,7 @@ mod health;
 
 use crate::pkg::state::AppState;
 use axum::Router;
-use std::str::FromStr;
-use tower_http::cors::{AllowOrigin, CorsLayer};
+use tower_http::cors::CorsLayer;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 

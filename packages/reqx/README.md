@@ -51,6 +51,7 @@ All URIs are relative to *http://localhost*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+*AuthenticationApi* | [**decodeToken**](docs/AuthenticationApi.md#decodetoken) | **POST** /v1/auth/decode | Decode the claims from a JWT token string
 *AuthenticationApi* | [**getCurrentUser**](docs/AuthenticationApi.md#getcurrentuser) | **GET** /v1/auth/me | Get current authenticated user information
 *AuthenticationApi* | [**getKeys**](docs/AuthenticationApi.md#getkeys) | **GET** /v1/auth/keys | Get public JWT key for token verification
 *AuthenticationApi* | [**login**](docs/AuthenticationApi.md#login) | **POST** /v1/auth/login | User login with email and password
@@ -66,13 +67,17 @@ Class | Method | HTTP request | Description
 ### Documentation For Models
 
  - [AuthResponse](docs/AuthResponse.md)
+ - [Claims](docs/Claims.md)
  - [DataResponseAuthResponse](docs/DataResponseAuthResponse.md)
  - [DataResponseAuthResponseData](docs/DataResponseAuthResponseData.md)
+ - [DataResponseClaims](docs/DataResponseClaims.md)
+ - [DataResponseClaimsData](docs/DataResponseClaimsData.md)
  - [DataResponsePublicKeyResponse](docs/DataResponsePublicKeyResponse.md)
  - [DataResponsePublicKeyResponseData](docs/DataResponsePublicKeyResponseData.md)
  - [DataResponseUsers](docs/DataResponseUsers.md)
  - [DataResponseUsersData](docs/DataResponseUsersData.md)
  - [DataResponseValue](docs/DataResponseValue.md)
+ - [DecodeRequest](docs/DecodeRequest.md)
  - [HealthRes](docs/HealthRes.md)
  - [LoginRequest](docs/LoginRequest.md)
  - [MagicLinkRequest](docs/MagicLinkRequest.md)

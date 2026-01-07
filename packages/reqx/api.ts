@@ -27,6 +27,11 @@ export interface AuthResponse {
     'access_token': string;
     'refresh_token'?: string | null;
 }
+export interface Claims {
+    'exp': number;
+    'iat': number;
+    'sub': string;
+}
 export interface DataResponseAuthResponse {
     'data'?: DataResponseAuthResponseData;
     'error'?: string | null;
@@ -37,6 +42,18 @@ export interface DataResponseAuthResponse {
 export interface DataResponseAuthResponseData {
     'access_token': string;
     'refresh_token'?: string | null;
+}
+export interface DataResponseClaims {
+    'data'?: DataResponseClaimsData;
+    'error'?: string | null;
+    'message'?: string;
+    'success': boolean;
+    'warnings'?: Array<string> | null;
+}
+export interface DataResponseClaimsData {
+    'exp': number;
+    'iat': number;
+    'sub': string;
 }
 export interface DataResponsePublicKeyResponse {
     'data'?: DataResponsePublicKeyResponseData;
@@ -72,6 +89,9 @@ export interface DataResponseValue {
     'message'?: string;
     'success': boolean;
     'warnings'?: Array<string> | null;
+}
+export interface DecodeRequest {
+    'token': string;
 }
 export interface HealthRes {
     'info': XReq;
@@ -126,6 +146,41 @@ export interface XReq {
  */
 export const AuthenticationApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
+        /**
+         * 
+         * @summary Decode the claims from a JWT token string
+         * @param {DecodeRequest} decodeRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        decodeToken: async (decodeRequest: DecodeRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'decodeRequest' is not null or undefined
+            assertParamExists('decodeToken', 'decodeRequest', decodeRequest)
+            const localVarPath = `/v1/auth/decode`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(decodeRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
         /**
          * 
          * @summary Get current authenticated user information
@@ -397,6 +452,19 @@ export const AuthenticationApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
+         * @summary Decode the claims from a JWT token string
+         * @param {DecodeRequest} decodeRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async decodeToken(decodeRequest: DecodeRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DataResponseClaims>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.decodeToken(decodeRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthenticationApi.decodeToken']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
          * @summary Get current authenticated user information
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -506,6 +574,16 @@ export const AuthenticationApiFactory = function (configuration?: Configuration,
     return {
         /**
          * 
+         * @summary Decode the claims from a JWT token string
+         * @param {DecodeRequest} decodeRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        decodeToken(decodeRequest: DecodeRequest, options?: RawAxiosRequestConfig): AxiosPromise<DataResponseClaims> {
+            return localVarFp.decodeToken(decodeRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @summary Get current authenticated user information
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -587,6 +665,17 @@ export const AuthenticationApiFactory = function (configuration?: Configuration,
  * AuthenticationApi - object-oriented interface
  */
 export class AuthenticationApi extends BaseAPI {
+    /**
+     * 
+     * @summary Decode the claims from a JWT token string
+     * @param {DecodeRequest} decodeRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public decodeToken(decodeRequest: DecodeRequest, options?: RawAxiosRequestConfig) {
+        return AuthenticationApiFp(this.configuration).decodeToken(decodeRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * 
      * @summary Get current authenticated user information

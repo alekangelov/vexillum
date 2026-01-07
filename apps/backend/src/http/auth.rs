@@ -1,4 +1,5 @@
 use crate::pkg::error::AppError;
+use crate::pkg::jwt::Claims;
 use crate::pkg::response::DataResponse;
 use crate::pkg::state::AppState;
 use crate::{models::db::MagicLinks, pkg::auth::AuthUser};
@@ -6,7 +7,7 @@ use argon2::{
     PasswordVerifier, password_hash::PasswordHash, password_hash::PasswordHasher,
     password_hash::SaltString,
 };
-use axum::{Json, Router, extract::State, response::IntoResponse};
+use axum::{Json, Router, extract::State};
 use axum_extra::extract::{
     WithRejection,
     cookie::{Cookie, SameSite},
@@ -28,6 +29,7 @@ use uuid::Uuid;
         logout,
         get_current_user,
         get_keys,
+        decode_token,
     ),
     components(
         schemas(
@@ -38,6 +40,8 @@ use uuid::Uuid;
             AuthResponse,
             PublicKeyResponse,
             crate::models::db::Users,
+            Claims,
+            DecodeRequest,
         ),
     ),
     tags(
@@ -53,6 +57,11 @@ pub struct LoginRequest {
     pub password: String,
     #[serde(default)]
     pub remember_me: bool,
+}
+
+#[derive(Serialize, Deserialize, ToSchema)]
+pub struct DecodeRequest {
+    pub token: String,
 }
 
 #[derive(Serialize, Deserialize, ToSchema)]
@@ -98,7 +107,13 @@ pub struct PublicKeyResponse {
 async fn login(
     State(state): State<AppState>,
     WithRejection(Json(payload), _): WithRejection<Json<LoginRequest>, AppError>,
-) -> Result<impl IntoResponse, AppError> {
+) -> Result<
+    (
+        [(&'static str, String); 1],
+        Json<DataResponse<AuthResponse>>,
+    ),
+    AppError,
+> {
     let client = state.db_pool.get().await?;
 
     let row = client
@@ -141,10 +156,14 @@ async fn login(
         .build();
     Ok((
         [("Set-Cookie", cookie.to_string())],
-        Json(AuthResponse {
-            access_token,
-            refresh_token: Some(refresh_token),
-        }),
+        Json(
+            DataResponse::new()
+                .data(AuthResponse {
+                    access_token,
+                    refresh_token: Some(refresh_token),
+                })
+                .build(),
+        ),
     ))
 }
 
@@ -163,7 +182,13 @@ async fn login(
 async fn register(
     State(state): State<AppState>,
     Json(payload): Json<RegisterRequest>,
-) -> Result<impl IntoResponse, AppError> {
+) -> Result<
+    (
+        [(&'static str, String); 1],
+        Json<DataResponse<AuthResponse>>,
+    ),
+    AppError,
+> {
     let client = state.db_pool.get().await?;
 
     // Check if user already exists
@@ -222,10 +247,14 @@ async fn register(
 
     Ok((
         [("Set-Cookie", cookie.to_string())],
-        Json(AuthResponse {
-            access_token,
-            refresh_token: Some(refresh_token),
-        }),
+        Json(
+            DataResponse::new()
+                .data(AuthResponse {
+                    access_token,
+                    refresh_token: Some(refresh_token),
+                })
+                .build(),
+        ),
     ))
 }
 
@@ -291,7 +320,13 @@ async fn request_magic_link(
 async fn verify_magic_link(
     State(state): State<AppState>,
     Json(payload): Json<MagicLinkVerifyRequest>,
-) -> Result<impl IntoResponse, AppError> {
+) -> Result<
+    (
+        [(&'static str, String); 1],
+        Json<DataResponse<AuthResponse>>,
+    ),
+    AppError,
+> {
     let client = state.db_pool.get().await?;
 
     // Find and validate magic link token
@@ -346,10 +381,14 @@ async fn verify_magic_link(
 
     Ok((
         [("Set-Cookie", cookie.to_string())],
-        Json(AuthResponse {
-            access_token,
-            refresh_token: Some(refresh_token),
-        }),
+        Json(
+            DataResponse::new()
+                .data(AuthResponse {
+                    access_token,
+                    refresh_token: Some(refresh_token),
+                })
+                .build(),
+        ),
     ))
 }
 
@@ -366,7 +405,7 @@ async fn verify_magic_link(
 async fn refresh_token(
     State(state): State<AppState>,
     jar: axum_extra::extract::CookieJar,
-) -> Result<impl IntoResponse, AppError> {
+) -> Result<Json<DataResponse<AuthResponse>>, AppError> {
     // Extract refresh token from cookies
     let refresh_token_str = jar
         .get("refresh_token")
@@ -388,10 +427,14 @@ async fn refresh_token(
     )?;
 
     // Create refresh token cookie
-    Ok((Json(AuthResponse {
-        access_token,
-        refresh_token: None,
-    }),))
+    Ok(Json(
+        DataResponse::new()
+            .data(AuthResponse {
+                access_token,
+                refresh_token: None,
+            })
+            .build(),
+    ))
 }
 
 /// Logout user by clearing refresh token
@@ -403,7 +446,13 @@ async fn refresh_token(
     ),
     tag = "Authentication"
 )]
-async fn logout() -> Result<impl IntoResponse, AppError> {
+async fn logout() -> Result<
+    (
+        [(&'static str, String); 1],
+        Json<DataResponse<serde_json::Value>>,
+    ),
+    AppError,
+> {
     // Create an empty refresh token cookie to clear it
     let cookie = Cookie::build(("refresh_token", ""))
         .path("/")
@@ -414,9 +463,13 @@ async fn logout() -> Result<impl IntoResponse, AppError> {
 
     Ok((
         [("Set-Cookie", cookie.to_string())],
-        Json(serde_json::json!({
-            "message": "Successfully logged out"
-        })),
+        Json(
+            DataResponse::new()
+                .data(serde_json::json!({
+                    "message": "Successfully logged out"
+                }))
+                .build(),
+        ),
     ))
 }
 
@@ -433,7 +486,7 @@ async fn logout() -> Result<impl IntoResponse, AppError> {
 async fn get_current_user(
     State(state): State<AppState>,
     auth_user: AuthUser,
-) -> Result<Json<crate::models::db::Users>, AppError> {
+) -> Result<Json<DataResponse<crate::models::db::Users>>, AppError> {
     let client = state.db_pool.get().await?;
 
     let row = client
@@ -444,7 +497,7 @@ async fn get_current_user(
     let user = crate::models::db::Users::from_row(&row)
         .map_err(|_| AppError::InternalError("Failed to parse user data".to_string()))?;
 
-    Ok(Json(user))
+    Ok(Json(DataResponse::new().data(user).build()))
 }
 
 /// Get public JWT key for token verification
@@ -456,16 +509,44 @@ async fn get_current_user(
     ),
     tag = "Authentication"
 )]
-async fn get_keys(State(state): State<AppState>) -> Result<Json<PublicKeyResponse>, AppError> {
+async fn get_keys(
+    State(state): State<AppState>,
+) -> Result<Json<DataResponse<PublicKeyResponse>>, AppError> {
     let public_key_bytes = state.jwt.public_key();
     let public_key_str = String::from_utf8(public_key_bytes.to_vec())
         .map_err(|_| AppError::InternalError("Invalid public key format".to_string()))?;
 
-    Ok(Json(PublicKeyResponse {
-        public_key: public_key_str,
-    }))
+    Ok(Json(
+        DataResponse::new()
+            .data(PublicKeyResponse {
+                public_key: public_key_str,
+            })
+            .build(),
+    ))
 }
 
+/// Decode the claims from a JWT token string
+#[utoipa::path(
+    post,
+    path = "/v1/auth/decode",
+    request_body = DecodeRequest,
+    responses(
+        (status = 200, description = "Decoded claims", body = DataResponse<Claims>),
+        (status = 400, description = "Invalid token", body = DataResponse<Claims>),
+    ),
+    tag = "Authentication"
+)]
+pub async fn decode_token(
+    State(state): State<AppState>,
+    Json(payload): Json<DecodeRequest>,
+) -> Result<Json<DataResponse<Claims>>, AppError> {
+    // Extract refresh token from cookies
+    let token_str = payload.token;
+    // Validate the refresh token
+    let claims = state.jwt.validate_token(&token_str)?;
+
+    Ok(Json(DataResponse::new().data(claims).build()))
+}
 pub fn router() -> Router<AppState> {
     let auth_routes = Router::new()
         .route("/login", axum::routing::post(login))
@@ -478,7 +559,8 @@ pub fn router() -> Router<AppState> {
         .route("/refresh", axum::routing::post(refresh_token))
         .route("/logout", axum::routing::post(logout))
         .route("/me", axum::routing::get(get_current_user))
-        .route("/keys", axum::routing::get(get_keys));
+        .route("/keys", axum::routing::get(get_keys))
+        .route("/decode", axum::routing::post(decode_token));
 
     Router::new().nest("/v1/auth", auth_routes)
 }
