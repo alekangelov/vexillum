@@ -4,19 +4,19 @@ import { useRender } from "@base-ui/react/use-render";
 import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "../../lib/utils";
-import { Button } from "../button";
-import { Input } from "../input";
-import { Separator } from "../separator";
+import { Button } from "./button";
+import { Input } from "./input";
+import { Separator } from "./separator";
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "../sheet";
-import { Skeleton } from "../skeleton";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../tooltip";
-import { useIsMobile } from "@/hooks/use-mobile";
+} from "./sheet";
+import { Skeleton } from "./skeleton";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
+import { useIsMobile } from "../../hooks/use-mobile";
 import { PanelLeftIcon } from "lucide-react";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";

@@ -38,8 +38,12 @@ type RouteFiles = {
     id: "root";
     page: "/" | "/dashboard" | "/auth" | "/auth/login" | "/auth/magic" | "/*";
   };
-  "pages/dashboard.tsx": {
+  "pages/dashboard/route.tsx": {
     id: "pages/dashboard";
+    page: "/dashboard";
+  };
+  "pages/dashboard._index/route.tsx": {
+    id: "pages/dashboard._index";
     page: "/dashboard";
   };
   "pages/_index.tsx": {
@@ -70,7 +74,8 @@ type RouteFiles = {
 
 type RouteModules = {
   "root": typeof import("./src/root.tsx");
-  "pages/dashboard": typeof import("./src/pages/dashboard.tsx");
+  "pages/dashboard": typeof import("./src/pages/dashboard/route.tsx");
+  "pages/dashboard._index": typeof import("./src/pages/dashboard._index/route.tsx");
   "pages/_index": typeof import("./src/pages/_index.tsx");
   "pages/auth": typeof import("./src/pages/auth/route.tsx");
   "pages/auth._index": typeof import("./src/pages/auth._index/route.tsx");

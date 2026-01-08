@@ -1,17 +1,16 @@
-import { Button } from "@vexillum/ui/components/button.js";
+import { useEffect } from "react";
+import { useNavigate } from "react-router";
 import { useAuth } from "../state/auth";
 
 export default function IndexPage() {
-  return (
-    <div>
-      Welcome to the Vexillum Frontend!
-      <Button
-        onClick={() => {
-          useAuth.getState().logout();
-        }}
-      >
-        Logout
-      </Button>
-    </div>
-  );
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/dashboard");
+    } else {
+      navigate("/auth/login");
+    }
+  }, [navigate, isAuthenticated]);
 }

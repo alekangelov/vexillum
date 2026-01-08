@@ -8,6 +8,11 @@ import { createJSONStorage, persist } from "zustand/middleware";
 export const useAuth = create(
   persist<{
     token?: string;
+    decoded?: {
+      sub: string;
+      exp: number;
+      iat: number;
+    };
     isAuthenticated: boolean;
     expiresAt?: number;
     login: (token: string) => void;
@@ -24,6 +29,7 @@ export const useAuth = create(
         if (!decoded) return;
         set({
           token,
+          decoded,
           expiresAt: decoded?.exp * 1000,
           isAuthenticated: true,
         });
